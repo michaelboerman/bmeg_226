@@ -9,7 +9,14 @@
     "content_category": null,
     "has_parameters": false
   },
-  "packages": null,
+  "packages": {
+    "rmarkdown",
+    "dplyr",
+    "ggplot2",
+    "lubridate",
+    "readr",
+    "tidyr"
+  },
   "files": {
     "examples/car_gas_plots/car_gas_plots_files/figure-html/unnamed-chunk-3-1.png": {
       "checksum": "a8a79737a4167633bc4847c2e97d47c3"
