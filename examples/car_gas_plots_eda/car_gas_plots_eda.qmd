@@ -1,10 +1,11 @@
 ---
-title: "Car Gas Plots"
+title: "Car Gas Plots - Exploratory Data Analysis"
 author: "Mr. Boerman"
 format: html
 editor: visual
 execute:
   warning: false
+  messages: false
 ---
 
 ```{r}
@@ -77,7 +78,6 @@ gas_log |>
   ) +
   theme_minimal()
 ```
-
 
 ```{r}
 annual_summary <- gas_log |>

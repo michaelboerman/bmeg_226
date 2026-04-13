@@ -1,5 +1,5 @@
 ---
-title: "Car Gas Plots"
+title: "Car Gas Mileage - Testing Distributions and Differences"
 author: "Mr. Boerman"
 format: html
 editor: visual
@@ -109,20 +109,6 @@ annual_summary <- gas_log |>
 
 ```
 
-```{r}
-gas_log |>
-  ggplot(aes(x = month, y = mpg)) +
-  geom_boxplot(fill = "lightblue", alpha = 0.6) +
-  geom_jitter(width = 0.1, alpha = 0.5, color = "navy") +
-  labs(
-    title = "Monthly Variation in Fuel Efficiency",
-    subtitle = "Boxplots show distribution; points show individual fill-ups",
-    x = "Month",
-    y = "MPG"
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-```
 
 ```{r}
 gas_log |>
@@ -137,3 +123,5 @@ gas_log |>
   knitr::kable()
 
 ```
+
+What test? t-test? ANOVA?
