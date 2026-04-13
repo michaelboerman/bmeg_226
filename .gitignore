@@ -1,5 +1,10 @@
 # user-defined
 *.DS_Store
+*.html
+*.png
+*.js
+*.css
+*.woff
 
 # History files
 .Rhistory
