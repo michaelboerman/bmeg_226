@@ -1,0 +1,139 @@
+---
+title: "Car Gas Plots"
+author: "Mr. Boerman"
+format: html
+editor: visual
+execute:
+  warning: false
+---
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(lubridate)
+library(tidyr)
+
+```
+
+```{r}
+# Read the data directly from GitHub
+gas_log <- read_csv("https://raw.githubusercontent.com/michaelboerman/bmeg_226/main/input_data/car_gas_log.csv") |> 
+  mutate(
+    date = mdy(date),
+    mpg = miles / gallons,
+    cost_per_gallon = cost / gallons,
+    cost_per_mile = cost / miles,
+    year = year(date),
+    month = month(date, label = TRUE)
+  )
+
+# Display the processed data
+head(gas_log)
+```
+
+
+# Question 1: Is This Data Normally Distributed?
+
+### Step a: Look at the data
+```{r}
+gas_log |> 
+  ggplot(aes(x = mpg)) +
+  geom_histogram(
+    binwidth = 15,
+    color = "white",
+    fill = "black"
+  ) +
+  labs(
+    title = "Distribution of MPG per tank",
+    x = "Miles per Tank",
+    y = "Number of Instances"
+  ) +
+  theme_minimal()
+```
+Maybe kinda normal with a skew. 
+
+Experiment with how the chart changes when we change the bin width. 
+Some bin widths make me think there's no way it's normal.
+Other bin widths lead me to believe it could be normal.
+
+Also, the x and y intervals don't make much sense.
+
+
+```{r}
+gas_log |> 
+  select(mpg) |> 
+  pull() |> 
+  shapiro.test()
+```
+
+What does this p-value mean?
+How do you find out?
+
+```{r}
+gas_log |> 
+  select(mpg) |> 
+  pull() |> 
+  qqnorm()
+```
+
+```{r}
+gas_log |> 
+  select(mpg) |> 
+  pull() |> 
+  log() |> 
+  shapiro.test()
+```
+
+```{r}
+gas_log |> 
+  select(mpg) |> 
+  pull() |> 
+  log() |> 
+  qqnorm()
+```
+
+
+# Question 2: Does My Mileage Per Tank Change Over Time?
+Goal: Evaluate whether there is a staistically significant difference in MPG per year. 
+```{r}
+annual_summary <- gas_log |>
+  group_by(year) |>
+  summarise(
+    avg_mpg = mean(mpg),
+    avg_cost_per_gallon = mean(cost_per_gallon),
+    total_miles = sum(miles),
+    total_cost = sum(cost),
+    n_fillups = n()
+  )
+
+```
+
+```{r}
+gas_log |>
+  ggplot(aes(x = month, y = mpg)) +
+  geom_boxplot(fill = "lightblue", alpha = 0.6) +
+  geom_jitter(width = 0.1, alpha = 0.5, color = "navy") +
+  labs(
+    title = "Monthly Variation in Fuel Efficiency",
+    subtitle = "Boxplots show distribution; points show individual fill-ups",
+    x = "Month",
+    y = "MPG"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+gas_log |>
+  group_by(year) |>
+  summarise(
+    `Total Miles` = sum(miles),
+    `Total Cost ($)` = round(sum(cost), 2),
+    `Avg MPG` = round(mean(mpg), 1),
+    `Avg $/Gallon` = round(mean(cost_per_gallon), 2),
+    `Fill-ups` = n()
+  ) |>
+  knitr::kable()
+
+```
