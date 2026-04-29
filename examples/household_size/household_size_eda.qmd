@@ -1,0 +1,154 @@
+---
+title: "What Size Houses Should They Build?"
+author: "Mr. Boerman"
+format: html
+editor: visual
+execute:
+  warning: false
+  messages: false
+---
+
+# Load Packages
+```{r}
+#| label: setup
+
+library(tidyverse)
+library(here)
+library(readxl)
+library(scales)
+library(knitr)
+```
+
+
+# Read Data - Pre-Cleaned
+```{r}
+# This is a file that I downloaded from the link above,
+# opened it in Excel,
+# deleted the unneeded rows at the top,
+# renamed the columns to be code-friendly (lowercase and _),
+# ensured the columns contained one type of data only,
+# saved as a csv file,
+# and uploaded to my posit working folder. 
+
+# This approcah is less reproducible, but easier.
+
+cleaned_data <- read_csv(
+  file = here("input_data/household_size_cleaned.csv")
+)
+```
+
+
+```{r}
+formatted_data <- cleaned_data |> 
+  filter(year == 2025) |> 
+  select(!c(total_count, average)) |> 
+  pivot_longer(
+    cols = c(!year),
+    names_to = "household_size",
+    values_to = "number_of_households"
+) |> 
+  mutate(household_size = case_when(
+    household_size == "hhsize_1" ~ 1,
+    household_size == "hhsize_2" ~ 2,
+    household_size == "hhsize_3" ~ 3,
+    household_size == "hhsize_4" ~ 4,
+    household_size == "hhsize_5" ~ 5,
+    household_size == "hhsize_6" ~ 6,
+    household_size == "hhsize_7+" ~ 7
+  )
+) |> 
+  arrange(household_size)
+```
+
+# Explore Data
+```{r}
+#| label: plot-histogram
+#| fig-width: 8
+#| fig-height: 5
+
+formatted_data |> 
+ggplot(
+  aes(x = household_size, y = number_of_households)) +
+  geom_col(fill = "steelblue", color = "black", width = 0.7) +
+  labs(
+    title = "Household Size Distribution (2025)",
+    subtitle = "Number of total households by size",
+    x = "Household Size",
+    y = "Number of Households"
+  ) +
+  scale_x_continuous(
+    expand = c(0,0),
+    breaks = c(1:7)
+  ) +
+  scale_y_continuous(
+    expand = c(0,0)
+  ) +
+  theme_minimal(base_size = 12)
+
+```
+
+# Create Variables of Interest
+```{r}
+data_with_percents <- formatted_data |> 
+  mutate(percent_of_total = number_of_households / sum(number_of_households)) |> 
+  mutate(cumulative_percent = cumsum(percent_of_total))
+```
+
+```{r}
+data_with_percents |> 
+  ggplot(aes(
+    x = household_size,
+    y = cumulative_percent
+  )) +
+  geom_step() +
+  geom_point() +
+  scale_x_continuous(
+    breaks = 1:nrow(data_with_percents),
+    labels = data_with_percents$household_size,
+    # expand = c(0,0)
+  ) +
+  scale_y_continuous(
+    labels = percent_format(accuracy = 1),
+    limits = c(0, 1),
+    # expand = c(0, 0)
+  ) +
+  labs(
+    title = "Cumulative Distribution of Household Sizes (2025)",
+    subtitle = "Share of Households Accounted for at Each Size",
+    y = "Percent Accounted For",
+    x = "Household Size"
+  ) +
+  theme_minimal()
+```
+
+
+# State Question
+I think that the average household size is not the most common household size. 
+I think that there are many small households (1-2 people) who needs small houses (1-2 bedrooms) and a decent number of large households (5-7 people) who needs large houses (5-7 rooms). 
+By producing houses with 3 beds, the company is cutting out the ends of the spectrum from their customer base. 
+
+# Answer Question
+To prove this, I will need to show the number of households that would buy a house that is 1 bed, 2 bed, 3 bed, etc.
+
+I can use the current variable of "percent of total" as a proxy, assuming that the number of bedrooms equals the household size (mom and dad may share a room, but buy 1 extra for growign family, and office, playroom, etc.)
+
+If the percent of total for any given household is large, the company should make a bunch of houses with that many rooms.
+
+In fact, the percent of total of household size should equate to the percent of total of houses built by the company!
+
+If the percent of total matches what they make now, they are in good shape.
+If not, they need to change what size houses they build. 
+
+```{r}
+data_with_percents |> 
+  mutate(
+    percent_formatted = paste0(round(percent_of_total * 100, 0), "%")
+  ) |> 
+  select(household_size, percent_formatted) |> 
+  kable()
+```
+
+
+
+# Draw Conclusion
+...
